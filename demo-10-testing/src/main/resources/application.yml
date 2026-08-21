@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: kafka-testing-demo
+  kafka:
+    # Giá trị này chỉ dùng khi chạy ứng dụng thật. Trong test nó bị ghi đè:
+    # Embedded Kafka → ${spring.embedded.kafka.brokers}; Testcontainers → cổng động của container.
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: test-group
+      # BẮT BUỘC cho test: listener thường sẵn sàng SAU khi test đã gửi message.
+      # Với latest, message gửi trước đó bị bỏ qua và test treo tới hết timeout.
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  topic: test-topic
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
