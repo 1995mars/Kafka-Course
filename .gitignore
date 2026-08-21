@@ -1,0 +1,23 @@
+# Build output (mỗi demo cũng có .gitignore riêng)
+target/
+*.class
+*.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# Log
+*.log
+app.log
+
+# File tạm của Office / OS
+~$*
+.DS_Store
+Thumbs.db
