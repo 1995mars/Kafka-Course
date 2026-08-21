@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: number-consumer
+  cloud:
+    function:
+      definition: numberConsumer
+    stream:
+      bindings:
+        # <tên bean>-in-0 là chiều ĐỌC; destination trùng với out-0 của processor
+        numberConsumer-in-0:
+          destination: squaredNumbers
+          group: number-consumer
+          consumer:
+            # processor ghi Long bằng LongSerde → đọc bằng deserializer gốc, không qua converter
+            use-native-decoding: true
+      kafka:
+        binder:
+          brokers: localhost:9092
+        bindings:
+          numberConsumer-in-0:
+            consumer:
+              configuration:
+                value.deserializer: org.apache.kafka.common.serialization.LongDeserializer
+
+logging:
+  level:
+    org.apache.kafka: warn

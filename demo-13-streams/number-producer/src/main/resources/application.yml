@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: number-producer
+  cloud:
+    function:
+      # khai tên bean — nhiều bean thì cách nhau dấu ';'
+      definition: numberProducer
+    stream:
+      bindings:
+        # quy ước binding: <tên bean>-out-0 là chiều GHI
+        numberProducer-out-0:
+          destination: numbers
+          producer:
+            # dùng serializer gốc của Kafka thay vì converter của Spring —
+            # để processor (Kafka Streams, LongSerde) và consumer đọc được ngay
+            useNativeEncoding: true
+      kafka:
+        binder:
+          brokers: localhost:9092
+        bindings:
+          numberProducer-out-0:
+            producer:
+              configuration:
+                value.serializer: org.apache.kafka.common.serialization.LongSerializer
+
+logging:
+  level:
+    org.apache.kafka: warn

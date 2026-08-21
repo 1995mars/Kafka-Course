@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>vn.motdev</groupId>
+        <artifactId>kafka-streams-demo</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>number-processor</artifactId>
+    <name>number-processor</name>
+    <description>KStream processor: bỏ số lẻ, bình phương số chẵn (numbers → squaredNumbers)</description>
+
+    <dependencies>
+        <!-- binder RIÊNG cho Kafka Streams — khác spring-cloud-starter-stream-kafka
+             của producer/consumer: binder này dựng hẳn một Kafka Streams topology -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-binder-kafka-streams</artifactId>
+        </dependency>
+    </dependencies>
+</project>

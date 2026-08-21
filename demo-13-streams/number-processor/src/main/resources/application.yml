@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: number-processor
+  cloud:
+    function:
+      definition: squareEvenNumbers
+    stream:
+      bindings:
+        # mấu chốt nối pipeline: in-0 của processor = out-0 của producer (numbers),
+        # out-0 của processor = in-0 của consumer (squaredNumbers)
+        squareEvenNumbers-in-0:
+          destination: numbers
+        squareEvenNumbers-out-0:
+          destination: squaredNumbers
+      kafka:
+        streams:
+          binder:
+            brokers: localhost:9092
+            # Kafka Streams bắt buộc có application.id — nó vừa là group.id
+            # vừa là prefix cho các topic nội bộ (state store, repartition)
+            applicationId: number-processor
+            configuration:
+              # producer gửi Long bằng LongSerializer (native) → topology phải đọc/ghi LongSerde
+              default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+              default.value.serde: org.apache.kafka.common.serialization.Serdes$LongSerde
+              commit.interval.ms: 1000
+
+logging:
+  level:
+    org.apache.kafka: warn
