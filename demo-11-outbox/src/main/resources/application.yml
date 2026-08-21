@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: kafka-outbox-demo
+  profiles:
+    active: local
+
+  datasource:
+    # H2 in-memory: mất sạch khi tắt app — đủ để demo, và tiện để chứng minh
+    # "message sống sót là nhờ NẰM TRONG DB trước khi lên Kafka"
+    url: jdbc:h2:mem:outboxdemo;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  h2:
+    console:
+      enabled: true   # http://localhost:8080/h2-console — nhìn tận mắt bảng outbox
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # ===== Bộ config "Idempotent Producer" khuyến nghị (slide Buổi 11) =====
+      acks: all                    # chờ đủ ISR theo min.insync.replicas mới tính là ghi xong
+      retries: 2147483647          # MAX_INT — cứ để producer tự lo, trần thật là delivery.timeout
+      properties:
+        enable.idempotence: true   # PID + sequence number: retry bao nhiêu lần cũng chỉ 1 bản ghi
+        max.in.flight.requests.per.connection: 5   # ≤5 mới giữ được thứ tự khi retry
+        delivery.timeout.ms: 120000                # trần tổng 2 phút cho mọi nỗ lực gửi
+        linger.ms: 20              # gom batch 20ms — đổi chút latency lấy throughput
+        batch.size: 32768
+      # Bật transactional producer cho Message Relay: cả batch outbox được publish nguyên tử.
+      # Có prefix này thì MỌI lệnh send phải nằm trong executeInTransaction.
+      transaction-id-prefix: outbox-relay-tx-
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        # Chỉ đọc message đã COMMIT — bỏ qua message của transaction bị abort.
+        # Mặc định là read_uncommitted, quên bật là thấy cả dữ liệu "ma".
+        isolation.level: read_committed
+
+app:
+  topics:
+    order-events: order-events
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
