@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: kafka-error-handling-demo
+  profiles:
+    active: local
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # acks=all + replication factor 3 + min.insync.replicas=2 là bộ ba kinh điển:
+      # thiếu quá nửa replica là producer ném exception NGAY, thay vì im lặng mất dữ liệu.
+      # (Cluster demo chỉ 1 broker nên min.insync.replicas thực tế là 1.)
+      acks: all
+      retries: 3
+      properties:
+        # tổng thời gian producer kiên trì gửi trước khi bỏ cuộc — để ngắn cho demo lỗi nhanh
+        delivery.timeout.ms: 8000
+        request.timeout.ms: 3000
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 1
+
+app:
+  topics:
+    payments: payments
+    payments-retry: payments-retry
+    payments-dlt: payments-dlt
+    orders: orders
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
