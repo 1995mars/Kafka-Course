@@ -1,0 +1,52 @@
+# Kafka + producer + consumer trong MỘT file để chạy được `--scale consumer=N`.
+# (Bài giảng tách làm 2 file compose; gộp lại như thế này ít thao tác hơn mà vẫn đúng ý.)
+#
+#   docker compose up --build --scale consumer=1
+#   docker compose up -d --scale consumer=3
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka-buoi08
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      # hai ứng dụng chỉ được khởi động khi broker đã nhận kết nối, nếu không producer
+      # sẽ không tạo nổi topic lúc startup
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:19092 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 15s
+
+  producer:
+    build: ./producer
+    environment:
+      # ghi đè spring.kafka.bootstrap-servers — trong mạng docker phải gọi listener nội bộ
+      BROKER: kafka:19092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  consumer:
+    build: ./consumer
+    environment:
+      BROKER: kafka:19092
+      # thời gian giả lập xử lý 1 message (ms) — 2000 nghĩa là chậm gấp đôi tốc độ producer
+      MESSAGE_PROCESSING_TIME: 2000
+    depends_on:
+      kafka:
+        condition: service_healthy
+    # KHÔNG đặt container_name và KHÔNG map cổng ra host, nếu không `--scale` sẽ báo trùng

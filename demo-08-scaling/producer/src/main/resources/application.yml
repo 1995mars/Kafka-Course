@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: scaling-producer
+  kafka:
+    # BROKER do docker-compose truyền vào (kafka:19092); chạy ngoài Docker thì mặc định localhost
+    bootstrap-servers: ${BROKER:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        # BẮT BUỘC cho demo này. Partitioner mặc định của Kafka là "sticky": khi message
+        # không có key, nó dồn tất cả vào MỘT partition cho tới khi đủ batch.size (16KB) rồi
+        # mới đổi sang partition khác — gộp mạng hiệu quả hơn nhiều.
+        # Demo chỉ bắn 1 message/giây, mỗi message vài byte, nên sẽ mất hàng giờ mới đầy batch:
+        # toàn bộ message rơi vào cùng partition và scale thêm consumer không giúp được gì.
+        # Ép round-robin để mỗi message đi một partition, đúng như hình vẽ trên slide.
+        partitioner.class: org.apache.kafka.clients.producer.RoundRobinPartitioner
+    template:
+      default-topic: sequential-number
+
+app:
+  # số partition = TRẦN số consumer làm việc thật trong một group. Đặt trước, đừng đổi sau:
+  # đổi số partition làm hàm băm key ra partition khác → vỡ thứ tự theo key của dữ liệu cũ.
+  partitions: 3
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn

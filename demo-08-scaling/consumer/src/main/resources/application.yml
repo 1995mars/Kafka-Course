@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: scaling-consumer
+  kafka:
+    bootstrap-servers: ${BROKER:localhost:9092}
+    consumer:
+      # TẤT CẢ instance dùng chung group-id này → chúng chia nhau partition thay vì
+      # mỗi con đọc một bản sao. Đây chính là cơ chế scale out của Kafka.
+      group-id: number-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 1
+
+app:
+  topic: sequential-number
+  # thời gian giả lập xử lý 1 message; docker-compose truyền vào qua MESSAGE_PROCESSING_TIME
+  message-processing-time: ${MESSAGE_PROCESSING_TIME:2000}
+  # tên hiển thị trong log — trong container, HOSTNAME chính là container id
+  instance-id: ${HOSTNAME:local}
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
