@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: kafka-offset-demo
+  profiles:
+    active: local
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Spring Kafka ĐÃ mặc định để false và tự lo commit theo AckMode.
+      # Khai lại ở đây chỉ để nhìn thấy điều đó, không phải để đổi hành vi.
+      enable-auto-commit: false
+      # mỗi lần poll lấy tối đa 5 bản ghi → batch nhỏ, dễ quan sát ranh giới commit của BATCH mode
+      max-poll-records: 5
+    listener:
+      # AckMode mặc định của Spring Kafka: commit sau khi xử lý xong CẢ batch mà poll trả về.
+      # Từng listener bên dưới ghi đè bằng containerFactory riêng để so sánh.
+      ack-mode: batch
+      # Mặc định shutdown đợi xử lý hết batch hiện tại. Bật immediate-stop để dừng ngay
+      # sau bản ghi đang xử lý — cần khi mỗi message tốn nhiều giây và container chỉ cho 30s.
+      # immediate-stop: true
+
+app:
+  topic: orders
+  # thời gian giả lập xử lý một đơn hàng — kéo dài để kịp Ctrl+C / kill -9 giữa batch
+  processing-millis: 1500
+
+demo:
+  # chiến lược cho PlainClientCommitDemo (chỉ chạy với profile plain-client):
+  # auto | sync | async | specific
+  commit-strategy: sync
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
