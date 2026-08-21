@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: kafka-priority-demo
+  profiles:
+    active: local
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  topics:
+    # Pattern 1 — brute-force: mỗi mức ưu tiên một topic
+    notify-high: notify-high
+    notify-low: notify-low
+    # Pattern 2 — resequencer: 1 partition mỗi topic để thứ tự ra nhìn rõ bằng mắt
+    reseq-in: reseq-in
+    reseq-out: reseq-out
+    # Pattern 3 — bucket priority: MỘT topic 6 partition chia 2 bucket (0-3 high, 4-5 low)
+    bucket-orders: bucket-orders
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
