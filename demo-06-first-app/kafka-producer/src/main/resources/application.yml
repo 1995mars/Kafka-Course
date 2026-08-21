@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: kafka-producer
+  profiles:
+    # profile "local" bật bean tạo topic (KafkaTopicConfig).
+    # Trên production KHÔNG chạy profile này — topic phải được tạo chủ động trước.
+    active: local
+  kafka:
+    # production: liệt kê TẤT CẢ broker của cluster, đừng khai mỗi một con
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    template:
+      # topic mặc định cho kafkaTemplate.sendDefault(...)
+      default-topic: random-number
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn

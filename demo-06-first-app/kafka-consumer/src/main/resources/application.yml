@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: kafka-consumer
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # tên consumer group — nhiều instance cùng group-id sẽ CHIA NHAU partition (Buổi 8)
+      group-id: random-consumer
+      # group đọc topic lần đầu thì bắt đầu từ ĐẦU topic, không phải chỉ message mới.
+      # Đổi thành latest sẽ bỏ qua mọi message producer gửi trước khi consumer khởi động.
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
