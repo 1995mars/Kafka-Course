@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: kafka-multi-group-demo
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      # đọc từ đầu topic khi group mới subscribe lần đầu
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  topic: driver_gps
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
