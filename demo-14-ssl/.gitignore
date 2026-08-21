@@ -1,0 +1,7 @@
+target/
+*.iml
+.idea/
+.vscode/
+app.log
+# chứng chỉ/keystore là đồ sinh ra bởi ssl/create-certs.sh — không commit
+ssl/secrets/

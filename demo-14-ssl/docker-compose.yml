@@ -1,0 +1,35 @@
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka-buoi14
+    ports:
+      - "9092:9092"
+    volumes:
+      # keystore/truststore sinh bởi ssl/create-certs.sh — PHẢI chạy script trước khi up
+      - ./ssl/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      # Khác mọi demo trước đúng một chỗ: listener 9092 ra ngoài giờ là SSL.
+      # PLAINTEXT chỉ còn dùng nội bộ (inter-broker/controller) — không map ra host.
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:9093,SSL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,SSL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Ảnh apache/kafka dùng quy ước FILENAME + CREDENTIALS: file nằm trong
+      # /etc/kafka/secrets, còn *_CREDENTIALS trỏ tới file TEXT chứa password
+      # (không nhận KAFKA_SSL_KEYSTORE_LOCATION/_PASSWORD trực tiếp)
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.broker.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: broker_creds
+      KAFKA_SSL_KEY_CREDENTIALS: broker_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.broker.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: broker_creds
+      # none = chỉ client xác thực broker (1 chiều). Đổi thành "required" + phát keystore
+      # cho client là có mutual TLS — broker xác thực ngược lại client.
+      KAFKA_SSL_CLIENT_AUTH: none

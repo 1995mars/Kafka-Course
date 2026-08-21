@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: kafka-ssl-demo
+  profiles:
+    active: local
+  kafka:
+    bootstrap-servers: localhost:9092
+    # ===== Phần "khoác áo giáp" — khác demo thường đúng khối này =====
+    security:
+      protocol: SSL
+    ssl:
+      # client chỉ cần TRUSTSTORE (chứa CA đã ký cho broker) để xác minh chứng chỉ broker.
+      # Keystore phía client chỉ cần khi broker bật ssl.client.auth=required (mutual TLS).
+      trust-store-location: file:ssl/secrets/kafka.client.truststore.jks
+      trust-store-password: motdevdemo
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  topics:
+    secure-messages: secure-messages
+
+logging:
+  level:
+    org.apache.kafka: warn
+    org.springframework.kafka: warn
